@@ -5,6 +5,7 @@ channels:
 dependencies:
   - python=3.8
   - bcrypt
+  - cryptography
   - dateutils
   - psycopg2
   - fastapi
@@ -15,4 +16,7 @@ dependencies:
   - jupyter
   - jedi=0.17.2
   - uvicorn
+  - python-jose
+  - python-multipart
+  - passlib
   - pip
