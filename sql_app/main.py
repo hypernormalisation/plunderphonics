@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Union
 
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from . import user_crud, schemas
-from .database import SessionLocal
+from .database import get_db
 
 # models.Base.metadata.create_all(bind=engine)
 
@@ -23,29 +23,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-
-class TokenData(BaseModel):
-    username: Optional[str] = None
-
-
-# Dependency for sql database sessions.
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
 
 
-def authenticate_user(db, username: str, password: str):
+def authenticate_user(
+        db, username: str, password: str) -> Union[schemas.User, bool]:
     user = user_crud.get_user_by_username(db, username)
     if not user:
         return False
@@ -66,7 +49,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme),
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-        token_data = TokenData(username=username)
+        token_data = schemas.TokenData(username=username)
     except JWTError:
         raise credentials_exception
     # user = user_crud.get_user_by_username(db, user_name=token_data.username)
@@ -87,7 +70,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 
-@app.post("/token", response_model=Token)
+@app.post("/token", response_model=schemas.Token)
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
                                  db: Session = Depends(get_db)):
     user = authenticate_user(db, form_data.username, form_data.password)
@@ -109,11 +92,18 @@ async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
     return current_user
 
 
-@app.get("/some/private/test", dependencies=[Depends(oauth2_scheme)])
+@app.get("/some/private/test", dependencies=[Depends(oauth2_scheme)],
+         response_model=schemas.SimpleMessage)
 async def some_test():
-    return {'key': 'you are in the secret club'}
+    """
+    A test endpoint that requires authentication.
+    """
+    return schemas.SimpleMessage(message='you are part of the secret club')
 
 
-@app.get("/some/public/test")
+@app.get("/some/public/test", response_model=schemas.SimpleMessage)
 async def some_test():
-    return {'key': 'anyone can see this'}
+    """
+    A test public endpoint that requires no authentication.
+    """
+    return schemas.SimpleMessage(message='anyone can see this')
