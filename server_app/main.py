@@ -5,7 +5,6 @@ from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from . import user_crud, schemas
@@ -52,7 +51,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme),
         token_data = schemas.TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    # user = user_crud.get_user_by_username(db, user_name=token_data.username)
     user = user_crud.get_user_by_username(db, token_data.username)
     if user is None:
         raise credentials_exception
@@ -92,17 +90,17 @@ async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
     return current_user
 
 
-@app.get("/some/private/test", dependencies=[Depends(oauth2_scheme)],
+@app.get("/private/test", dependencies=[Depends(oauth2_scheme)],
          response_model=schemas.SimpleMessage)
-async def some_test():
+async def private_test():
     """
     A test endpoint that requires authentication.
     """
     return schemas.SimpleMessage(message='you are part of the secret club')
 
 
-@app.get("/some/public/test", response_model=schemas.SimpleMessage)
-async def some_test():
+@app.get("/public/test", response_model=schemas.SimpleMessage)
+async def public_test():
     """
     A test public endpoint that requires no authentication.
     """
