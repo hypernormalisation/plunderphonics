@@ -4,13 +4,13 @@
 
 CREATE TABLE public.users
 (
-    userid serial,
+    id serial,
     username text COLLATE pg_catalog."default" unique,
     password text COLLATE pg_catalog."default",
-    emailaddress text COLLATE pg_catalog."default",
-    datemodified timestamp,
-    datecreated timestamp default current_timestamp,
-    CONSTRAINT users_pk PRIMARY KEY (userid)
+    email_address text COLLATE pg_catalog."default",
+    date_modified timestamp,
+    date_created timestamp default current_timestamp,
+    CONSTRAINT users_pk PRIMARY KEY (id)
 )
 
 TABLESPACE pg_default;

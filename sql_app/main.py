@@ -1,8 +1,3 @@
-from typing import List
-
-from fastapi import Depends, FastAPI, HTTPException
-from fastapi.security import OAuth2PasswordBearer
-from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -11,10 +6,12 @@ from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
-from . import user_crud, models, schemas
-from .database import SessionLocal, engine
+from sqlalchemy.orm import Session
 
-models.Base.metadata.create_all(bind=engine)
+from . import user_crud, schemas
+from .database import SessionLocal
+
+# models.Base.metadata.create_all(bind=engine)
 
 SECRET_KEY = "883b94400740a6912d8c614d757678fee01ee11e8a782466fc8fa1e3ff4de5e4"
 ALGORITHM = "HS256"
@@ -35,7 +32,7 @@ class TokenData(BaseModel):
     username: Optional[str] = None
 
 
-# Dependency
+# Dependency for sql database sessions.
 def get_db():
     db = SessionLocal()
     try:
@@ -72,16 +69,11 @@ async def get_current_user(token: str = Depends(oauth2_scheme),
         token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    user = user_crud.get_user_by_username(db, user_name=token_data.username)
+    # user = user_crud.get_user_by_username(db, user_name=token_data.username)
+    user = user_crud.get_user_by_username(db, token_data.username)
     if user is None:
         raise credentials_exception
     return user
-
-
-async def get_current_active_user(current_user: schemas.User = Depends(get_current_user)):
-    # if current_user.disabled:
-    #     raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
 
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -113,10 +105,15 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 
 @app.get("/users/me/", response_model=schemas.User)
-async def read_users_me(current_user: schemas.User = Depends(get_current_active_user)):
+async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
     return current_user
 
 
-@app.get("/some/test", dependencies=[Depends(oauth2_scheme)])
+@app.get("/some/private/test", dependencies=[Depends(oauth2_scheme)])
 async def some_test():
     return {'key': 'you are in the secret club'}
+
+
+@app.get("/some/public/test")
+async def some_test():
+    return {'key': 'anyone can see this'}

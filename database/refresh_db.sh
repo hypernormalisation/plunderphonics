@@ -1,4 +1,3 @@
 docker-compose down
-docker volume rm warp-lane-database_app-db-data
-docker-compose up -d --build application-db
+docker volume rm database_plunderphonics-app-db-data
 docker-compose up -d

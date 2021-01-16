@@ -7,15 +7,16 @@ from pydantic import BaseModel
 
 # noinspection SpellCheckingInspection
 class UserBase(BaseModel):
-    emailaddress: str
+    email_address: str
 
 
 # noinspection SpellCheckingInspection
 class User(UserBase):
-    userid: int
+    id: int
     username: str
-    datemodified: datetime.datetime
-    datecreated: datetime.datetime
+    email_address: str
+    date_modified: datetime.datetime
+    date_created: datetime.datetime
 
     class Config:
         orm_mode = True
