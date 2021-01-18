@@ -1,3 +1,11 @@
+"""
+Main web application script.
+
+Run me from the project root with
+
+    uvicorn server_app.main:app
+
+"""
 from datetime import datetime, timedelta
 from typing import Optional, Union
 
@@ -22,12 +30,12 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def verify_password(plain_password, hashed_password):
+def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 
 def authenticate_user(
-        db, username: str, password: str) -> Union[schemas.User, bool]:
+        db: Session, username: str, password: str) -> Union[schemas.User, bool]:
     user = user_crud.get_user_by_username(db, username)
     if not user:
         return False
@@ -87,6 +95,7 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 
 @app.get("/users/me/", response_model=schemas.User)
 async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
+    """Get information on the current User."""
     return current_user
 
 
