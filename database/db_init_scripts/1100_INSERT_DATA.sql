@@ -9,3 +9,13 @@ INSERT INTO USERS (
     'dev@pomeron.com',
     timestamp '2021-01-01 00:00'
 );
+
+INSERT INTO ORIGINAL_TRACKS (
+    user_id,
+    url,
+    name
+) VALUES(
+    1,
+    'file:///some_dummy.wav',
+    'my_track'
+);

@@ -22,14 +22,14 @@ ALTER TABLE public.users
 -- original tracks table
 CREATE TABLE public.original_tracks
 (
-    track_id serial,
-    uploaded_by_user_id integer NOT NULL,
-    track_link text COLLATE pg_catalog."default",
-    track_name text COLLATE pg_catalog."default",
+    id serial,
+    user_id integer NOT NULL,
+    url text COLLATE pg_catalog."default",
+    name text COLLATE pg_catalog."default",
     date_modified timestamp,
     date_created timestamp default current_timestamp,
-    CONSTRAINT original_tracks_pk PRIMARY KEY (track_id),
-    CONSTRAINT "ORIGINAL_TRACKS_USERS_FK" FOREIGN KEY (uploaded_by_user_id)
+    CONSTRAINT original_tracks_pk PRIMARY KEY (id),
+    CONSTRAINT "ORIGINAL_TRACKS_USERS_FK" FOREIGN KEY (user_id)
         REFERENCES public.users (id) MATCH SIMPLE
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
@@ -45,5 +45,5 @@ ALTER TABLE public.original_tracks
 
 CREATE INDEX "fki_ORIGINAL_TRACKS_USERS_FK"
     ON public.original_tracks USING btree
-    (uploaded_by_user_id ASC NULLS LAST)
+    (user_id ASC NULLS LAST)
     TABLESPACE pg_default;
