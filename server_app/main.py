@@ -18,12 +18,10 @@ from sqlalchemy.orm import Session
 from . import user_crud, original_track_crud, schemas
 from .database import get_db
 
-# models.Base.metadata.create_all(bind=engine)
 
 SECRET_KEY = "883b94400740a6912d8c614d757678fee01ee11e8a782466fc8fa1e3ff4de5e4"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
-
 
 app = FastAPI()
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -102,7 +100,27 @@ async def get_current_user(
 
 
 #########################################################################
-# Endpoints in our API.
+# Testing endpoints in our API.
+#########################################################################
+@app.get("/private/test", dependencies=[Depends(oauth2_scheme)],
+         response_model=schemas.SimpleMessage)
+async def private_test():
+    """
+    A test endpoint that requires authentication.
+    """
+    return schemas.SimpleMessage(message='you are part of the secret club')
+
+
+@app.get("/public/test", response_model=schemas.SimpleMessage)
+async def public_test():
+    """
+    A test public endpoint that requires no authentication.
+    """
+    return schemas.SimpleMessage(message='anyone can see this')
+
+
+#########################################################################
+# Data access endpoints in our API.
 #########################################################################
 @app.get("/users/me/",
          response_model=schemas.User)
@@ -119,22 +137,4 @@ async def get_my_original_tracks(
     db: Session = Depends(get_db)
 ):
     track_list = original_track_crud.get_tracks_by_user_id(db, current_user.id)
-    print(track_list)
     return track_list
-
-
-@app.get("/private/test", dependencies=[Depends(oauth2_scheme)],
-         response_model=schemas.SimpleMessage)
-async def private_test():
-    """
-    A test endpoint that requires authentication.
-    """
-    return schemas.SimpleMessage(message='you are part of the secret club')
-
-
-@app.get("/public/test", response_model=schemas.SimpleMessage)
-async def public_test():
-    """
-    A test public endpoint that requires no authentication.
-    """
-    return schemas.SimpleMessage(message='anyone can see this')

@@ -1,7 +1,4 @@
--- Table: public.users
-
--- DROP TABLE public.users;
-
+-- users tables
 CREATE TABLE public.users
 (
     id serial,
@@ -41,7 +38,6 @@ TABLESPACE pg_default;
 ALTER TABLE public.original_tracks
     OWNER to admin;
 
--- DROP INDEX public."fki_ORIGINAL_TRACKS_USERS_FK";
 
 CREATE INDEX "fki_ORIGINAL_TRACKS_USERS_FK"
     ON public.original_tracks USING btree
