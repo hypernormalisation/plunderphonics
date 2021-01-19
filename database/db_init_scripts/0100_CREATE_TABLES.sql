@@ -8,7 +8,7 @@ CREATE TABLE public.users
     username text COLLATE pg_catalog."default" unique,
     password text COLLATE pg_catalog."default",
     email_address text COLLATE pg_catalog."default",
-    date_modified timestamp,
+    date_modified timestamp default current_timestamp,
     date_created timestamp default current_timestamp,
     CONSTRAINT users_pk PRIMARY KEY (id)
 )
@@ -26,7 +26,7 @@ CREATE TABLE public.original_tracks
     user_id integer NOT NULL,
     url text COLLATE pg_catalog."default",
     name text COLLATE pg_catalog."default",
-    date_modified timestamp,
+    date_modified timestamp default current_timestamp,
     date_created timestamp default current_timestamp,
     CONSTRAINT original_tracks_pk PRIMARY KEY (id),
     CONSTRAINT "ORIGINAL_TRACKS_USERS_FK" FOREIGN KEY (user_id)

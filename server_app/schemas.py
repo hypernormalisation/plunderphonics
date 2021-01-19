@@ -37,3 +37,13 @@ class TokenData(BaseModel):
 
 class SimpleMessage(BaseModel):
     message: str
+
+
+class TrackBase(BaseModel):
+    id: int
+    name: str
+    date_modified: datetime.datetime
+    date_created: datetime.datetime
+
+    class Config:
+        orm_mode = True
