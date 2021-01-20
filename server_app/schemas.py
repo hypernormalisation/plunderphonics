@@ -51,6 +51,14 @@ class UserAuthenticate(User):
     hashed_password: str
 
 
+class EmailUpdate(BaseModel):
+    new_email: str
+
+
+class PasswordUpdate(BaseModel):
+    new_password: str
+
+
 #########################################################################
 # Track schemas.
 #########################################################################

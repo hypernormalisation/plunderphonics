@@ -131,7 +131,7 @@ async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 
 #########################################################################
-# Data access endpoints in our API.
+# Data read endpoints in our API.
 #########################################################################
 @app.get("/users/me/", response_model=schemas.User)
 async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
@@ -146,3 +146,26 @@ async def get_my_original_tracks(
 ):
     """Get the current user's list of original tracks."""
     return original_track_crud.get_tracks_by_user_id(db, current_user.id)
+
+
+#########################################################################
+# Data update endpoints in our API.
+#########################################################################
+@app.post("/users/update/email", response_model=schemas.User)
+async def update_email(
+        new_email: schemas.EmailUpdate,
+        current_user: schemas.User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    """Change the current user's email address."""
+    return user_crud.update_email(db, current_user.id, new_email.new_email)
+
+
+@app.post("/users/update/password", response_model=schemas.User)
+async def update_password(
+        new_password: schemas.PasswordUpdate,
+        current_user: schemas.User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    """Change the current user's password."""
+    return user_crud.update_password(db, current_user.id, new_password.new_password)
