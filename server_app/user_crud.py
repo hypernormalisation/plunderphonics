@@ -57,3 +57,13 @@ def update_password(db: Session, user_id: int, new_password: str) -> models.User
     current_user.hashed_password = hashed_password_str
     db.commit()
     return current_user
+
+
+#########################################################################
+# Delete.
+#########################################################################
+def delete_user(db: Session, user_id: int) -> dict:
+    current_user = get_user_by_id(db, user_id)
+    db.delete(current_user)
+    db.commit()
+    return {'message': 'user successfully deleted'}

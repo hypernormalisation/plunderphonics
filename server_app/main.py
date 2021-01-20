@@ -169,3 +169,15 @@ async def update_password(
 ):
     """Change the current user's password."""
     return user_crud.update_password(db, current_user.id, new_password.new_password)
+
+
+#########################################################################
+# Data delete endpoints in our API.
+#########################################################################
+@app.post("/users/delete", response_model=schemas.SimpleMessage)
+async def delete_user(
+        current_user: schemas.User = Depends(get_current_user),
+        db: Session = Depends(get_db),
+):
+    """Delete the current user."""
+    return user_crud.delete_user(db, current_user.id)
