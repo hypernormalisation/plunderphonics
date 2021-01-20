@@ -1,7 +1,7 @@
 INSERT INTO USERS (
     username,
-    password,
-    email_address,
+    hashed_password,
+    email,
     date_modified
 ) VALUES(
     'admin',
@@ -12,8 +12,8 @@ INSERT INTO USERS (
 
 INSERT INTO USERS (
     username,
-    password,
-    email_address,
+    hashed_password,
+    email,
     date_modified
 ) VALUES(
     'john',

@@ -3,8 +3,8 @@ CREATE TABLE public.users
 (
     id serial,
     username text COLLATE pg_catalog."default" unique,
-    password text COLLATE pg_catalog."default",
-    email_address text COLLATE pg_catalog."default",
+    hashed_password text COLLATE pg_catalog."default",
+    email text COLLATE pg_catalog."default",
     date_modified timestamp default current_timestamp,
     date_created timestamp default current_timestamp,
     CONSTRAINT users_pk PRIMARY KEY (id)

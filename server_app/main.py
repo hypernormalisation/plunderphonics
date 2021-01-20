@@ -15,9 +15,8 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from . import user_crud, original_track_crud, schemas
+from . import user_crud, original_track_crud, schemas, models
 from .database import get_db
-
 
 SECRET_KEY = "883b94400740a6912d8c614d757678fee01ee11e8a782466fc8fa1e3ff4de5e4"
 ALGORITHM = "HS256"
@@ -40,7 +39,7 @@ def authenticate_user(
     user = user_crud.get_user_by_username(db, username)
     if not user:
         return False
-    if not verify_password(password, user.password):
+    if not verify_password(password, user.hashed_password):
         return False
     return user
 
@@ -77,9 +76,9 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
 # Custom FastAPI dependencies.
 #########################################################################
 async def get_current_user(
-    db: Session = Depends(get_db),
-    token: str = Depends(oauth2_scheme),
-):
+        db: Session = Depends(get_db),
+        token: str = Depends(oauth2_scheme)
+) -> models.User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -102,13 +101,13 @@ async def get_current_user(
 #########################################################################
 # Testing endpoints in our API.
 #########################################################################
-@app.get("/private/test", dependencies=[Depends(oauth2_scheme)],
+@app.get("/private/test", dependencies=[Depends(get_current_user)],
          response_model=schemas.SimpleMessage)
 async def private_test():
     """
     A test endpoint that requires authentication.
     """
-    return schemas.SimpleMessage(message='you are part of the secret club')
+    return {'message': 'you are part of the secret club'}
 
 
 @app.get("/public/test", response_model=schemas.SimpleMessage)
@@ -116,25 +115,34 @@ async def public_test():
     """
     A test public endpoint that requires no authentication.
     """
-    return schemas.SimpleMessage(message='anyone can see this')
+    return {'message': 'anyone can see this'}
+
+
+#########################################################################
+# Data creation endpoints in our API.
+#########################################################################
+@app.post("/users/create", response_model=schemas.User)
+def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    """Register a new user."""
+    db_user = user_crud.get_user_by_email(db, email=user.email)
+    if db_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    return user_crud.create_user(db=db, user=user)
 
 
 #########################################################################
 # Data access endpoints in our API.
 #########################################################################
-@app.get("/users/me/",
-         response_model=schemas.User)
-async def read_users_me(
-    current_user: schemas.User = Depends(get_current_user)
-):
+@app.get("/users/me/", response_model=schemas.User)
+async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
     """Get information on the current User."""
     return current_user
 
 
 @app.get("/tracks/original", response_model=List[schemas.TrackBase])
 async def get_my_original_tracks(
-    current_user: schemas.User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+        current_user: schemas.User = Depends(get_current_user),
+        db: Session = Depends(get_db)
 ):
-    track_list = original_track_crud.get_tracks_by_user_id(db, current_user.id)
-    return track_list
+    """Get the current user's list of original tracks."""
+    return original_track_crud.get_tracks_by_user_id(db, current_user.id)
