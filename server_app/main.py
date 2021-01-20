@@ -122,7 +122,7 @@ async def public_test():
 # Data creation endpoints in our API.
 #########################################################################
 @app.post("/users/create", response_model=schemas.User)
-def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     """Register a new user."""
     db_user = user_crud.get_user_by_email(db, email=user.email)
     if db_user:

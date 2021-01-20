@@ -19,7 +19,7 @@ def get_user_by_email(db: Session, email: str) -> models.User:
 
 def create_user(db: Session, user: schemas.UserCreate) -> models.User:
     hashed_password_bytes = bcrypt.hashpw(user.password.encode('utf-8'),
-                                    bcrypt.gensalt())
+                                          bcrypt.gensalt())
     hashed_password_str = hashed_password_bytes.decode('utf-8')
     print(hashed_password_str, type(hashed_password_str))
     db_user = models.User(
