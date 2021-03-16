@@ -9,7 +9,7 @@ Run me from the project root with
 from datetime import datetime, timedelta
 from typing import Optional, Union, List
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, status, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
@@ -137,6 +137,17 @@ async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     if db_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     return user_crud.create_user(db=db, user=user)
+
+@app.post("/tracks/upload")
+async def upload_track(user_id: str = Form(...), file: UploadFile = File(...), db: Session = Depends(get_db)):
+    """Uploads a track from the web app."""
+    track_metadata =  {
+        'name': file.filename,
+        'date_modified': datetime.utcnow(),
+        'date_created': datetime.utcnow(),
+        'user_id': user_id
+    }
+    original_track_crud.create_track(db, track_metadata, file.file)
 
 
 #########################################################################

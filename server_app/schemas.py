@@ -70,3 +70,6 @@ class TrackBase(BaseModel):
 
     class Config:
         orm_mode = True
+
+class UserTrack(TrackBase):
+    user_id: int

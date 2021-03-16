@@ -4,6 +4,7 @@ services:
   # postgres database
   db:
     image: postgres
+    hostname: postgres
     restart: always
     environment:
       POSTGRES_DB: plunderphonics_db
@@ -28,7 +29,8 @@ services:
     volumes:
       - pgadmin-data:/var/lib/pgadmin
     links:
-      - "plunderphonics-db:app-pgsql-server"
+      - "db:app-pgsql-server"
   
 volumes:
   plunderphonics-app-db-data:
+  pgadmin-data:
