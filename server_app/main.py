@@ -9,15 +9,21 @@ Run me from the project root with
 from datetime import datetime, timedelta
 from typing import Optional, Union, List
 
-from fastapi import Depends, FastAPI, HTTPException, status, File, UploadFile, Form
+from fastapi import (
+    Depends, FastAPI, HTTPException,
+    status, File, UploadFile, Form,
+    Response, Cookie
+)
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import OAuth2PasswordRequestForm
+from .oauth2_password_bearer_with_cookie import OAuth2PasswordBearerWithCookie
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
 from . import user_crud, original_track_crud, schemas, models
 from .database import get_db
+from uuid import uuid4
 
 SECRET_KEY = "883b94400740a6912d8c614d757678fee01ee11e8a782466fc8fa1e3ff4de5e4"
 ALGORITHM = "HS256"
@@ -26,14 +32,14 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://localhost:4200"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="token")
 
 
 #########################################################################
@@ -65,8 +71,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 
 @app.post("/token", response_model=schemas.Token)
-async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(),
-                                 db: Session = Depends(get_db)):
+async def login_for_access_token(
+    response: Response, 
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
     user = authenticate_user(db, form_data.username, form_data.password)
     if not user:
         raise HTTPException(
@@ -76,17 +85,35 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         )
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.username}, expires_delta=access_token_expires
+        data={"sub": user.username, "session_id": str(uuid4())}, expires_delta=access_token_expires
     )
-    return {"access_token": access_token, "token_type": "bearer"}
+
+    response.set_cookie(
+        key="access_token",
+        value=f"Bearer {access_token}", 
+        httponly=True,
+        samesite='None',
+        secure=True)
+
+@app.post("/logout", response_model=schemas.SimpleMessage)
+async def logout(token: str = Depends(oauth2_scheme)):
+    payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+    print('hi')
+    print(payload)
+    print(payload.get('exp'))
+    payload['exp'] = 0
+    print(payload.get('exp'))
+    return {'message': 'Logout successful'}
+
+
 
 
 #########################################################################
 # Custom FastAPI dependencies.
 #########################################################################
 async def get_current_user(
-        db: Session = Depends(get_db),
-        token: str = Depends(oauth2_scheme)
+    db: Session = Depends(get_db),
+    token: str = Depends(oauth2_scheme)
 ) -> models.User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
@@ -139,7 +166,11 @@ async def create_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
     return user_crud.create_user(db=db, user=user)
 
 @app.post("/tracks/upload")
-async def upload_track(user_id: str = Form(...), file: UploadFile = File(...), db: Session = Depends(get_db)):
+async def upload_track(
+    user_id: str = Form(...), 
+    file: UploadFile = File(...), 
+    db: Session = Depends(get_db)
+):
     """Uploads a track from the web app."""
     track_metadata =  {
         'name': file.filename,
@@ -153,8 +184,10 @@ async def upload_track(user_id: str = Form(...), file: UploadFile = File(...), d
 #########################################################################
 # Data read endpoints in our API.
 #########################################################################
-@app.get("/users/me/", response_model=schemas.User)
-async def read_users_me(current_user: schemas.User = Depends(get_current_user)):
+@app.get("/users/me", response_model=schemas.User)
+async def read_users_me(
+    current_user: schemas.User = Depends(get_current_user)
+):
     """Get information on the current User."""
     return current_user
 
