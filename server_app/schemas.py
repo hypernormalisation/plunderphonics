@@ -22,6 +22,10 @@ class TokenData(BaseModel):
     username: Optional[str] = None
 
 
+class Session(BaseModel):
+    session_id: str
+    user_id: str
+
 #########################################################################
 # User schemas.
 #########################################################################

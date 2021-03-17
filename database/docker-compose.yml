@@ -30,6 +30,11 @@ services:
       - pgadmin-data:/var/lib/pgadmin
     links:
       - "db:app-pgsql-server"
+
+  redis:
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
   
 volumes:
   plunderphonics-app-db-data:
