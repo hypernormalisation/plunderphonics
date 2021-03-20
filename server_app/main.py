@@ -196,7 +196,8 @@ async def read_users_me(
 @app.get("/tracks/original", response_model=List[schemas.TrackBase])
 async def get_my_original_tracks(
         current_user: schemas.User = Depends(get_current_user),
-        db: Session = Depends(get_db)
+        db: Session = Depends(get_db),
+        token: str = Depends(oauth2_scheme)
 ):
     """Get the current user's list of original tracks."""
     return original_track_crud.get_tracks_by_user_id(db, current_user.id)
