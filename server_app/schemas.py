@@ -22,6 +22,10 @@ class TokenData(BaseModel):
     username: Optional[str] = None
 
 
+class Session(BaseModel):
+    session_id: str
+    user_id: str
+
 #########################################################################
 # User schemas.
 #########################################################################
@@ -70,3 +74,6 @@ class TrackBase(BaseModel):
 
     class Config:
         orm_mode = True
+
+class UserTrack(TrackBase):
+    user_id: int

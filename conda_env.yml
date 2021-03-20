@@ -22,3 +22,4 @@ dependencies:
   - passlib
   - dataset
   - pip
+  - redis-py=3.5.3
