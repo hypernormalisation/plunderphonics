@@ -12,7 +12,7 @@ conda env create -f conda_env.yml
 ## Run
 
 ```bash
-uvicorn server_app:main:app
+uvicorn server_app.main:app
 ```
 
 The `--reload` flag is handy for development.

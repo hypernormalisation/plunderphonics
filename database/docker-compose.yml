@@ -16,19 +16,19 @@ services:
     ports:
       - "5432:5432"
   
-#  # To add the above postgres server to pgadmin, use hostname as defined by docker: 'postgres'
-#  pgadmin:
-#    image: dpage/pgadmin4:latest
-#    environment:
-#      PGADMIN_DEFAULT_EMAIL: dev@pomeron.com
-#      PGADMIN_DEFAULT_PASSWORD: secret
-#      PGADMIN_LISTEN_PORT: 80
-#    ports:
-#      - "8080:80"
-#    volumes:
-#      - pgadmin-data:/var/lib/pgadmin
-#    links:
-#      - "application-db:app-pgsql-server"
+  # To add the above postgres server to pgadmin, use hostname as defined by docker: 'postgres'
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: dev@pomeron.com
+      PGADMIN_DEFAULT_PASSWORD: secret
+      PGADMIN_LISTEN_PORT: 80
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin-data:/var/lib/pgadmin
+    links:
+      - "plunderphonics-db:app-pgsql-server"
   
 volumes:
   plunderphonics-app-db-data:
